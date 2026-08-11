@@ -7,12 +7,14 @@ from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from product_news import __version__
 from product_news.config import Settings
 from product_news.models import Article
 from product_news.notifier import DesktopNotifier
 from product_news.scheduler import ProductNewsPoller
 from product_news.sources import RssArticleSource, SampleArticleSource
 from product_news.store import ArticleStore
+from product_news.updater import find_update
 
 
 def _build_poller(settings: Settings) -> ProductNewsPoller:
@@ -144,7 +146,7 @@ class NewsWidget:
             | qt.NoDropShadowWindowHint
         )
         self.window.setAttribute(qt.WA_TranslucentBackground, True)
-        self.window.setFixedSize(388, 246)
+        self.window.setFixedSize(388, 282)
         self.window.setStyleSheet(
             """
             QWidget {
@@ -266,11 +268,15 @@ class NewsWidget:
         buttons = QHBoxLayout()
         buttons.setSpacing(8)
         self.refresh_button = QPushButton("刷新")
+        self.update_button = QPushButton("更新")
+        self.update_button.setObjectName("secondary")
         self.open_button = QPushButton("打开原文")
         self.open_button.setObjectName("secondary")
         self.refresh_button.clicked.connect(lambda: self.refresh())
+        self.update_button.clicked.connect(self.check_update)
         self.open_button.clicked.connect(self.open_latest)
         buttons.addWidget(self.refresh_button)
+        buttons.addWidget(self.update_button)
         buttons.addWidget(self.open_button)
 
         surface_layout.addLayout(top)
@@ -318,6 +324,19 @@ class NewsWidget:
     def open_latest(self) -> None:
         if self.latest_article and self.latest_article.url and self.settings.open_on_click:
             webbrowser.open(self.latest_article.url)
+
+    def check_update(self) -> None:
+        self.status.setText("检查更新中")
+        try:
+            update = find_update(__version__)
+        except Exception:
+            self.status.setText("更新检查失败")
+            return
+        if update is None:
+            self.status.setText("已是最新版")
+            return
+        self.status.setText(f"发现 {update.tag}")
+        webbrowser.open(update.download_url)
 
     def _mouse_press(self, event: object) -> None:
         if event.button() == self.qt.LeftButton:
