@@ -34,9 +34,22 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -e ".[dev,build]"
 
+      - name: Prepare macOS icon
+        run: |
+          mkdir -p build/app.iconset
+          for size in 16 32 64 128 256 512; do
+            sips -z "$size" "$size" src/product_news/assets/product_meow_icon.png --out "build/app.iconset/icon_${size}x${size}.png"
+          done
+          sips -z 32 32 src/product_news/assets/product_meow_icon.png --out build/app.iconset/icon_16x16@2x.png
+          sips -z 64 64 src/product_news/assets/product_meow_icon.png --out build/app.iconset/icon_32x32@2x.png
+          sips -z 256 256 src/product_news/assets/product_meow_icon.png --out build/app.iconset/icon_128x128@2x.png
+          sips -z 512 512 src/product_news/assets/product_meow_icon.png --out build/app.iconset/icon_256x256@2x.png
+          sips -z 1024 1024 src/product_news/assets/product_meow_icon.png --out build/app.iconset/icon_512x512@2x.png
+          iconutil -c icns build/app.iconset -o build/product-news.icns
+
       - name: Build app bundle
         run: |
-          pyinstaller --noconfirm --clean --windowed --collect-all PySide6 --paths src --name "Product News" src/product_news/__main__.py
+          pyinstaller --noconfirm --clean --windowed --collect-all PySide6 --add-data "src/product_news/assets:product_news/assets" --paths src --icon build/product-news.icns --name "Product News" src/product_news/__main__.py
 
       - name: Prepare package
         run: |

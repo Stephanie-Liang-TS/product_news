@@ -27,7 +27,7 @@ jobs:
 
       - name: Build exe
         run: |
-          pyinstaller --noconfirm --clean --onefile --windowed --collect-all PySide6 --paths src --name product-news src/product_news/__main__.py
+          pyinstaller --noconfirm --clean --onefile --windowed --collect-all PySide6 --add-data "src/product_news/assets;product_news/assets" --paths src --icon src/product_news/assets/product_meow_icon.ico --name product-news src/product_news/__main__.py
 
       - name: Copy env example
         run: |

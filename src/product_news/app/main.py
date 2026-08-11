@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import webbrowser
+from importlib import resources
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -30,7 +31,7 @@ def _build_poller(settings: Settings) -> ProductNewsPoller:
 def main() -> int:
     try:
         from PySide6.QtCore import Qt, QTimer
-        from PySide6.QtGui import QAction, QCursor, QIcon
+        from PySide6.QtGui import QAction, QGuiApplication, QIcon
         from PySide6.QtWidgets import (
             QApplication,
             QDialog,
@@ -51,6 +52,9 @@ def main() -> int:
 
     app = QApplication(sys.argv)
     app.setApplicationName("产品喵")
+    app.setQuitOnLastWindowClosed(False)
+    icon = QIcon(_asset_path("product_meow_icon.png"))
+    app.setWindowIcon(icon)
 
     widget = NewsWidget(
         settings=settings,
@@ -67,7 +71,7 @@ def main() -> int:
     )
     widget.show()
 
-    tray = QSystemTrayIcon(QIcon.fromTheme("help-about"), app)
+    tray = QSystemTrayIcon(icon, app)
     tray.setToolTip("产品喵")
     notifier = DesktopNotifier(tray)
     menu = QMenu()
@@ -80,8 +84,17 @@ def main() -> int:
     tray.setContextMenu(menu)
     tray.show()
 
-    widget.move(QCursor.pos())
+    screen = QGuiApplication.primaryScreen()
+    if screen:
+        available = screen.availableGeometry()
+        widget.move_to(
+            available.right() - widget.width() - 28,
+            available.top() + 86,
+        )
     QTimer.singleShot(0, lambda: widget.refresh(notifier=None))
+    keep_top_timer = QTimer()
+    keep_top_timer.timeout.connect(widget.keep_on_top)
+    keep_top_timer.start(3000)
 
     scheduler = BackgroundScheduler()
     scheduler.add_job(
@@ -95,6 +108,10 @@ def main() -> int:
     app.aboutToQuit.connect(scheduler.shutdown)
 
     return app.exec()
+
+
+def _asset_path(name: str) -> str:
+    return str(resources.files("product_news.assets").joinpath(name))
 
 
 class NewsWidget:
@@ -120,59 +137,83 @@ class NewsWidget:
 
         self.window = QWidget()
         self.window.setWindowTitle("产品喵")
-        self.window.setWindowFlags(qt.FramelessWindowHint | qt.WindowStaysOnTopHint | qt.Tool)
+        self.window.setWindowFlags(
+            qt.FramelessWindowHint
+            | qt.WindowStaysOnTopHint
+            | qt.Tool
+            | qt.NoDropShadowWindowHint
+        )
         self.window.setAttribute(qt.WA_TranslucentBackground, True)
-        self.window.setFixedSize(360, 220)
+        self.window.setFixedSize(388, 246)
         self.window.setStyleSheet(
             """
             QWidget {
-                color: #292524;
-                font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+                color: #f8ead2;
+                font-family: "Songti SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
             }
             QWidget#surface {
-                background: #fffaf0;
-                border: 1px solid #fed7aa;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #fff7de, stop:0.38 #552216, stop:1 #140908);
+                border: 1px solid #d6a64e;
+                border-radius: 22px;
+            }
+            QWidget#ornament {
+                background: rgba(255, 244, 207, 0.10);
+                border: 1px solid rgba(247, 211, 110, 0.42);
                 border-radius: 18px;
             }
             QLabel#avatar {
-                background: #fb923c;
-                color: white;
-                border: 3px solid #ffffff;
-                border-radius: 30px;
-                font-size: 17px;
-                font-weight: 800;
+                background: qradialgradient(cx:0.45, cy:0.32, radius:0.88,
+                    fx:0.34, fy:0.24, stop:0 #fff4c8, stop:0.45 #d69435, stop:1 #42150f);
+                color: #fff7df;
+                border: 2px solid #f7d36e;
+                border-radius: 38px;
+                font-size: 24px;
+                font-weight: 900;
             }
-            QLabel#bubble {
-                background: #ffffff;
-                border: 1px solid #e7e5e4;
-                border-radius: 12px;
-                padding: 8px 10px;
+            QLabel#crest {
+                color: #f7d36e;
+                font-size: 13px;
+                font-weight: 800;
+                letter-spacing: 0px;
             }
             QLabel#badge {
-                color: #9a3412;
+                color: #7a1d11;
                 font-size: 12px;
-                font-weight: 700;
+                font-weight: 800;
             }
             QLabel#title {
-                color: #1c1917;
-                font-size: 15px;
-                font-weight: 700;
+                color: #fff8e7;
+                font-size: 17px;
+                font-weight: 900;
             }
             QLabel#meta {
-                color: #57534e;
+                color: #f0d7ac;
                 font-size: 12px;
             }
-            QPushButton {
-                background: #0f172a;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 8px 12px;
+            QLabel#status {
+                color: #a66f2b;
+                background: rgba(255, 248, 231, 0.88);
+                border: 1px solid rgba(247, 211, 110, 0.50);
+                border-radius: 10px;
+                padding: 4px 8px;
+                font-size: 12px;
                 font-weight: 700;
             }
+            QPushButton {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #f7d36e, stop:1 #9f5a1d);
+                color: #261109;
+                border: none;
+                border-radius: 12px;
+                padding: 10px 14px;
+                font-size: 14px;
+                font-weight: 900;
+            }
             QPushButton#secondary {
-                background: #e7e5e4;
-                color: #292524;
+                background: rgba(255, 248, 231, 0.88);
+                color: #4a1d12;
+                border: 1px solid rgba(247, 211, 110, 0.52);
             }
             """
         )
@@ -180,8 +221,8 @@ class NewsWidget:
         surface = QWidget()
         surface.setObjectName("surface")
         surface_layout = QVBoxLayout()
-        surface_layout.setContentsMargins(14, 14, 14, 14)
-        surface_layout.setSpacing(10)
+        surface_layout.setContentsMargins(15, 14, 15, 15)
+        surface_layout.setSpacing(12)
         surface.setLayout(surface_layout)
 
         layout = QVBoxLayout()
@@ -189,22 +230,25 @@ class NewsWidget:
         layout.addWidget(surface)
 
         top = QHBoxLayout()
-        top.setSpacing(10)
+        top.setSpacing(12)
         self.avatar = QLabel("喵")
         self.avatar.setObjectName("avatar")
-        self.avatar.setFixedSize(66, 66)
+        self.avatar.setFixedSize(78, 78)
         self.avatar.setAlignment(self.qt.AlignCenter)
 
         bubble = QWidget()
+        bubble.setObjectName("ornament")
         bubble_layout = QVBoxLayout()
-        bubble_layout.setContentsMargins(0, 0, 0, 0)
-        bubble_layout.setSpacing(4)
+        bubble_layout.setContentsMargins(12, 10, 12, 10)
+        bubble_layout.setSpacing(5)
         bubble.setLayout(bubble_layout)
 
+        self.crest = QLabel("PRODUCT MEOW")
+        self.crest.setObjectName("crest")
         self.badge = QLabel(self.settings.source_name)
         self.badge.setObjectName("badge")
         self.status = QLabel("准备刷新")
-        self.status.setObjectName("meta")
+        self.status.setObjectName("status")
 
         self.title = QLabel("产品喵蹲好了，点刷新看情报")
         self.title.setObjectName("title")
@@ -212,10 +256,10 @@ class NewsWidget:
         self.meta = QLabel("每 30 分钟巡逻一次")
         self.meta.setObjectName("meta")
         self.meta.setWordWrap(True)
-        bubble_layout.addWidget(self.badge)
+        bubble_layout.addWidget(self.crest)
         bubble_layout.addWidget(self.title)
         bubble_layout.addWidget(self.meta)
-        bubble_layout.addWidget(self.status)
+        bubble_layout.addWidget(self.status, alignment=self.qt.AlignLeft)
         top.addWidget(self.avatar)
         top.addWidget(bubble, 1)
 
@@ -240,9 +284,20 @@ class NewsWidget:
 
     def show(self) -> None:
         self.window.show()
+        self.keep_on_top()
 
     def move(self, pos: object) -> None:
         self.window.move(pos)
+
+    def move_to(self, x: int, y: int) -> None:
+        self.window.move(x, y)
+
+    def width(self) -> int:
+        return self.window.width()
+
+    def keep_on_top(self) -> None:
+        if self.window.isVisible():
+            self.window.raise_()
 
     def refresh(self, notifier: DesktopNotifier | None = None) -> None:
         self.status.setText("刷新中")
