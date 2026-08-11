@@ -1,0 +1,56 @@
+name: Build macOS App
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            artifact: product-news-macos-intel
+          - os: macos-14
+            artifact: product-news-macos-apple-silicon
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -e ".[dev,build]"
+
+      - name: Build app bundle
+        run: |
+          pyinstaller --noconfirm --clean --windowed --collect-all PySide6 --paths src --name "Product News" src/product_news/__main__.py
+
+      - name: Prepare package
+        run: |
+          mkdir -p package
+          cp -R "dist/Product News.app" package/
+          cp .env.example package/.env.example
+          cp USER_INSTALL.md package/USER_INSTALL.md
+          ditto -c -k --sequesterRsrc --keepParent package "${{ matrix.artifact }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+
+      - name: Create release assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ matrix.artifact }}.zip
