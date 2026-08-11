@@ -2,12 +2,16 @@
 
 ## Mac 使用方法
 
-1. 下载 `product-news-macos-apple-silicon` 或 `product-news-macos-intel` 压缩包。
+1. 下载 `product-news-macos-apple-silicon.dmg` 或 `product-news-macos-intel.dmg`。
 2. 如果你的 Mac 是 M1/M2/M3/M4，优先选 Apple Silicon；如果是老款 Intel Mac，选 Intel。
-3. 解压后，双击 `Product News.app`。
-4. 桌面上出现「产品喵」小组件后，可以拖到顺手的位置。
-5. 点「刷新」获取内容，点「打开原文」打开示例文章链接。
-6. 不想用了，在菜单或 Dock 里退出应用。
+3. 双击打开 `.dmg`。
+4. 把 `Product News.app` 拖到 `Applications`。
+5. 从「应用程序」里打开 `Product News.app`。
+6. 桌面上出现「产品喵」小组件后，可以拖到顺手的位置。
+7. 点「刷新」获取内容，点「打开原文」打开示例文章链接。
+8. 不想用了，在菜单或 Dock 里退出应用。
+
+如果只拿到 `.zip` 备选包，也可以解压后手动把 `Product News.app` 拖进「应用程序」。
 
 ## 现在 demo 会显示什么
 
@@ -34,6 +38,7 @@
 ## 如果打不开
 
 - Mac 提示无法打开未知开发者应用：打开「系统设置」->「隐私与安全性」，允许打开 `Product News.app`。
+- 当前 demo 还没有 Apple 签名/公证，所以第一次打开时看到未知开发者提示是正常的。
 - 双击后没看到窗口：看 Dock 里是否已有 Product News，或者用 Command+Tab 找一下。
 - 内容一直是示例：说明还没有配置真实 RSS 地址，或 RSS 地址暂时不可访问。
 - 公司电脑拦截应用：需要把压缩包或 app 发给 IT/管理员放行。
@@ -43,7 +48,7 @@
 - 当前是 MVP 版本，重点验证桌面展示、刷新、打开原文和 30 分钟定时轮询。
 - 当前 demo 先用示例内容，真实「海外独角兽」RSS 后续再接。
 - Mac `.app` 需要在 macOS 环境完成最终打包和真机验证。
-- 更正式的 `.dmg`、代码签名、公证可以后续再加。
+- `.dmg` 已用于拖拽安装体验；代码签名、公证后续正式分发前再加。
 - 开机自启先不默认打开；Mac 真机验证通过后，可以加登录项或 LaunchAgent。
 
 ## Windows 备选

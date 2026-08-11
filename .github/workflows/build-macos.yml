@@ -46,14 +46,30 @@ jobs:
           cp USER_INSTALL.md package/USER_INSTALL.md
           ditto -c -k --sequesterRsrc --keepParent package "${{ matrix.artifact }}.zip"
 
+      - name: Prepare drag-to-Applications DMG
+        run: |
+          mkdir -p dmg-root
+          cp -R "dist/Product News.app" dmg-root/
+          ln -s /Applications dmg-root/Applications
+          hdiutil create \
+            -volname "Product News" \
+            -srcfolder dmg-root \
+            -ov \
+            -format UDZO \
+            "${{ matrix.artifact }}.dmg"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}.zip
+          path: |
+            ${{ matrix.artifact }}.zip
+            ${{ matrix.artifact }}.dmg
 
       - name: Create release assets
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ${{ matrix.artifact }}.zip
+          files: |
+            ${{ matrix.artifact }}.zip
+            ${{ matrix.artifact }}.dmg

@@ -45,9 +45,9 @@ pip install -e ".[build]"
 pyinstaller --noconfirm --clean --windowed --collect-all PySide6 --paths src --name "Product News" src/product_news/__main__.py
 ```
 
-产物在 `dist/Product News.app`。面向普通用户交付时，把 `.app`、`.env.example` 和 `USER_INSTALL.md` 放进同一个 zip 包。
+产物在 `dist/Product News.app`。面向普通用户交付时，优先用 `.dmg`，让用户把 `Product News.app` 拖到 `Applications`；`.zip` 只作为备选包。
 
-也可以在 GitHub Actions 手动触发 `build-macos` workflow，或推送 `v*` tag 后下载构建产物。构建会分别产出 Intel Mac 和 Apple Silicon Mac 两个 zip。
+也可以在 GitHub Actions 手动触发 `build-macos` workflow，或推送 `v*` tag 后下载构建产物。构建会分别产出 Intel Mac 和 Apple Silicon Mac 的 `.dmg` 与 `.zip`。
 
 ## 开机自启
 
