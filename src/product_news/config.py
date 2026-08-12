@@ -32,9 +32,10 @@ def _bool_env(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    source_name: str = "产品喵"
-    source: str = "mock"
+    source_name: str = "AI 产品情报"
+    source: str = "multi"
     rss_url: str | None = None
+    feeds: str | None = None
     feed_token: str | None = None
     poll_minutes: int = 30
     max_items: int = 10
@@ -54,15 +55,20 @@ class Settings:
             or os.getenv("PN_FEED_TOKEN", "").strip()
             or None
         )
+        feeds = (
+            os.getenv("PRODUCT_NEWS_FEEDS", "").strip()
+            or os.getenv("PN_FEEDS", "").strip()
+            or None
+        )
         source = (
             os.getenv("PRODUCT_NEWS_SOURCE", "").strip()
             or os.getenv("PN_SOURCE", "").strip()
-            or ("rss" if rss_url else "mock")
+            or ("rss" if rss_url else "multi")
         ).lower()
         source_name = (
             os.getenv("PRODUCT_NEWS_SOURCE_NAME", "").strip()
             or os.getenv("PN_ACCOUNT_NAME", "").strip()
-            or "产品喵"
+            or "AI 产品情报"
         )
         poll_minutes = int(
             os.getenv("PRODUCT_NEWS_POLL_MINUTES", "").strip()
@@ -78,6 +84,7 @@ class Settings:
             source_name=source_name,
             source=source,
             rss_url=rss_url,
+            feeds=feeds,
             feed_token=feed_token,
             poll_minutes=max(1, poll_minutes),
             max_items=max(1, max_items),

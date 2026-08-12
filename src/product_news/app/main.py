@@ -12,17 +12,23 @@ from product_news.config import Settings
 from product_news.models import Article
 from product_news.notifier import DesktopNotifier
 from product_news.scheduler import ProductNewsPoller
-from product_news.sources import RssArticleSource, SampleArticleSource
+from product_news.sources import (
+    MultiFeedArticleSource,
+    RssArticleSource,
+    SampleArticleSource,
+    parse_feed_list,
+)
 from product_news.store import ArticleStore
 from product_news.updater import find_update
 
 
 def _build_poller(settings: Settings) -> ProductNewsPoller:
-    source = (
-        RssArticleSource(settings.source_name, settings.rss_url)
-        if settings.source == "rss" and settings.rss_url
-        else SampleArticleSource(settings.source_name)
-    )
+    if settings.source == "rss" and settings.rss_url:
+        source = RssArticleSource(settings.source_name, settings.rss_url)
+    elif settings.source == "mock":
+        source = SampleArticleSource(settings.source_name)
+    else:
+        source = MultiFeedArticleSource(parse_feed_list(settings.feeds))
     return ProductNewsPoller(
         source=source,
         store=ArticleStore(settings.db_path),

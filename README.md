@@ -9,7 +9,7 @@
 - 支持手动刷新。
 - 支持拖动悬浮窗位置。
 - 支持按配置定时轮询，发现新文章后弹出桌面提示。
-- 数据源可插拔：demo 阶段先用 sample/fallback，真实 RSS/Wechat2RSS 后续接入。
+- 数据源可插拔：默认接入免费公开 AI 产品情报源，也可切回 sample 或指定单个 RSS/Wechat2RSS。
 
 ## 本机运行
 
@@ -21,22 +21,33 @@ cp .env.example .env
 python -m product_news
 ```
 
-当前 demo 默认使用内置 sample 数据，便于先验收组件和交互，不阻塞真实内容源选择。
+当前 demo 默认使用公开聚合源：OpenAI News、Product Hunt、Hacker News AI、arXiv cs.AI、arXiv cs.CL。
 
 ## 配置
 
 | 变量 | 说明 |
 | --- | --- |
-| `PRODUCT_NEWS_SOURCE_NAME` | 来源名称，默认 `产品喵` |
-| `PRODUCT_NEWS_SOURCE` | `mock` 或 `rss`，默认随 RSS 地址自动判断 |
-| `PRODUCT_NEWS_RSS_URL` | RSS/Wechat2RSS 地址，空则使用 sample 源 |
+| `PRODUCT_NEWS_SOURCE_NAME` | 来源名称，默认 `AI 产品情报` |
+| `PRODUCT_NEWS_SOURCE` | `multi`、`mock` 或 `rss`，默认 `multi`；配置单个 RSS 地址时自动用 `rss` |
+| `PRODUCT_NEWS_RSS_URL` | 单个 RSS/Wechat2RSS 地址 |
+| `PRODUCT_NEWS_FEEDS` | 多源列表，格式 `名称|URL,名称|URL`；留空使用内置公开源 |
 | `PRODUCT_NEWS_FEED_TOKEN` | 可选 feed token，只从环境读取，不写入数据库 |
 | `PRODUCT_NEWS_POLL_MINUTES` | 后台轮询间隔，默认 30 分钟 |
 | `PRODUCT_NEWS_MAX_ITEMS` | 每次读取文章数量，默认 10 |
 | `PRODUCT_NEWS_DB_PATH` | SQLite 数据库路径，留空则写入系统用户数据目录 |
 | `PRODUCT_NEWS_OPEN_ON_CLICK` | 点击最新文章时是否打开原文 |
 
-兼容早期变量：`PN_ACCOUNT_NAME`、`PN_SOURCE`、`PN_FEED_URL`、`PN_FEED_TOKEN`、`PN_POLL_MINUTES`、`PN_MAX_ITEMS`。如果同时配置，`PRODUCT_NEWS_*` 优先。
+兼容早期变量：`PN_ACCOUNT_NAME`、`PN_SOURCE`、`PN_FEED_URL`、`PN_FEEDS`、`PN_FEED_TOKEN`、`PN_POLL_MINUTES`、`PN_MAX_ITEMS`。如果同时配置，`PRODUCT_NEWS_*` 优先。
+
+默认内置公开源：
+
+| 来源 | 地址 |
+| --- | --- |
+| OpenAI News | `https://openai.com/news/rss.xml` |
+| Product Hunt | `https://www.producthunt.com/feed` |
+| Hacker News AI | `https://hnrss.org/newest?q=AI` |
+| arXiv cs.AI | `https://export.arxiv.org/rss/cs.AI` |
+| arXiv cs.CL | `https://export.arxiv.org/rss/cs.CL` |
 
 ## Mac 打包
 
